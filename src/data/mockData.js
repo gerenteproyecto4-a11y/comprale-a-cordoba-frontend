@@ -166,9 +166,9 @@ export const sellers = [
 ];
 
 export const stats = {
-  buyers: 12450,
-  revenue: 842000000,
-  businesses: 324,
+  buyers: 36,
+  revenue: 250000,
+  businesses: 24,
 };
 
 export const sponsors = [

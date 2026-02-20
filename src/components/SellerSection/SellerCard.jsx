@@ -1,36 +1,75 @@
+import { useState } from 'react';
 import ProductScrollList from './ProductScrollList';
 import './SellerCard.css';
 
 function SellerCard({ seller, onViewDetail }) {
+  const [offset, setOffset] = useState(0);
+  const visibleCount = 3;
+  const canPrev = offset > 0;
+  const canNext = offset + visibleCount < seller.products.length;
+
+  const handlePrev = () => setOffset((o) => Math.max(0, o - 1));
+  const handleNext = () =>
+    setOffset((o) => Math.min(Math.max(0, seller.products.length - visibleCount), o + 1));
+
   return (
-    <div className="seller-card">
-      <div className="seller-card__info">
+    <article className="seller-card">
+      <div className="seller-card__left">
         <img
-          className="seller-card__image"
+          className="seller-card__cover"
           src={seller.image}
-          alt={`Negocio ${seller.name}`}
+          alt={`Portada de ${seller.name}`}
           loading="lazy"
         />
-        <div className="seller-card__details">
+        <div className="seller-card__overlay">
           <span className="seller-card__category">{seller.category}</span>
           <h3 className="seller-card__name">{seller.name}</h3>
           <p className="seller-card__description">{seller.description}</p>
-          <div className="seller-card__footer">
-            <span className="seller-card__rating">
+          <div className="seller-card__meta">
+            <span className="seller-card__rating" aria-label={`Calificación: ${seller.rating}`}>
               ★ {seller.rating}
             </span>
             <button
               className="seller-card__btn"
               onClick={onViewDetail}
-              aria-label={`Ver detalle de ${seller.name}`}
+              aria-label={`Cómprale aquí a ${seller.name}`}
             >
-              Ver negocio
+              Cómprale aquí
             </button>
           </div>
         </div>
       </div>
-      <ProductScrollList products={seller.products} />
-    </div>
+
+      <div className="seller-card__right">
+        <button
+          className="seller-card__arrow seller-card__arrow--prev"
+          onClick={handlePrev}
+          disabled={!canPrev}
+          aria-label="Productos anteriores"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        <ProductScrollList
+          products={seller.products}
+          offset={offset}
+          visibleCount={visibleCount}
+        />
+
+        <button
+          className="seller-card__arrow seller-card__arrow--next"
+          onClick={handleNext}
+          disabled={!canNext}
+          aria-label="Más productos"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+    </article>
   );
 }
 

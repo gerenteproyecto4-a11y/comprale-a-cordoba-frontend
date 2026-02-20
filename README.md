@@ -1,16 +1,59 @@
-# React + Vite
+# Cómprale a Córdoba - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite web application connecting buyers with local businesses from the Córdoba department of Colombia. The platform showcases sellers, their products, and supports local commerce.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Node.js** >= 18
 
-## React Compiler
+## Installation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+```
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run dev
+```
+
+Runs at [http://localhost:5173](http://localhost:5173)
+
+## Build
+
+```bash
+npm run build
+```
+
+## Preview
+
+```bash
+npm run preview
+```
+
+## Environment Variables
+
+No environment variables are required.
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Footer/          # Footer with sponsors
+│   ├── Hero/            # Landing hero section
+│   ├── HowItWorks/      # Step-by-step guide section
+│   ├── Navbar/          # Navigation bar with dual-tab search and cart
+│   ├── SellerDetail/    # Seller detail modal component
+│   ├── SellerSection/   # Seller cards carousel section
+│   └── Stats/           # Impact statistics section
+├── data/
+│   └── mockData.js      # Mock sellers, stats and sponsors data
+├── pages/
+│   ├── HomePage.jsx     # Main landing page
+│   └── SellerDetailPage.jsx  # Full seller detail page (/seller/:id)
+├── App.jsx              # Router and top-level component
+├── index.css            # Global CSS variables and base styles
+└── main.jsx             # Entry point
+```

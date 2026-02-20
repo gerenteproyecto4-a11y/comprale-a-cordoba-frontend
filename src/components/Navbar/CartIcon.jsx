@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import './CartIcon.css';
 
-function CartIcon() {
-  const [itemCount] = useState(0);
+const CART_COUNT = 2;
 
+function CartIcon() {
   return (
-    <button className="cart-icon" aria-label={`Carrito de compras, ${itemCount} artículos`}>
+    <button className="cart-icon" aria-label={`Carrito de compras, ${CART_COUNT} artículos`}>
       <svg
         width="26"
         height="26"
@@ -15,14 +14,13 @@ function CartIcon() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <circle cx="9" cy="21" r="1" />
         <circle cx="20" cy="21" r="1" />
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
       </svg>
-      {itemCount > 0 && (
-        <span className="cart-icon__badge">{itemCount}</span>
-      )}
+      <span className="cart-icon__badge" aria-hidden="true">{CART_COUNT}</span>
     </button>
   );
 }
