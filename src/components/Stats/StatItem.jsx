@@ -1,17 +1,16 @@
 import { useRef, useEffect, useState } from 'react';
 import './Stats.css';
 
-const formatNumber = (value) =>
-  new Intl.NumberFormat('es-CO').format(value);
+function formatDisplay(value, format) {
+  if (format === 'currency') {
+    if (value < 1000) return String(Math.floor(value));
+    const k = Math.floor(value / 1000);
+    return `${k}k`;
+  }
+  return String(Math.floor(value));
+}
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(value);
-
-function useCountUp(target, duration = 2000, isVisible) {
+function useCountUp(target, duration = 1800, isVisible) {
   const [count, setCount] = useState(0);
   const startedRef = useRef(false);
 
@@ -45,12 +44,12 @@ function StatItem({ value, label, format }) {
     return () => observer.disconnect();
   }, []);
 
-  const count = useCountUp(value, 2000, isVisible);
-  const display = format === 'currency' ? formatCurrency(count) : formatNumber(count);
+  const count = useCountUp(value, 1800, isVisible);
+  const display = formatDisplay(count, format);
 
   return (
     <div className="stat-item" ref={ref}>
-      <span className="stat-item__number">{display}</span>
+      <span className="stat-item__number" aria-label={display}>{display}</span>
       <span className="stat-item__label">{label}</span>
     </div>
   );

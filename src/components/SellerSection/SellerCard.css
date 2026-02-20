@@ -4,6 +4,9 @@
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: row;
+  min-height: 280px;
   transition: box-shadow 0.25s;
 }
 
@@ -11,74 +14,85 @@
   box-shadow: var(--shadow-md);
 }
 
-.seller-card__info {
-  display: flex;
-  gap: 24px;
-  padding: 28px;
-  align-items: flex-start;
-}
-
-.seller-card__image {
-  width: 140px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: var(--radius-md);
+/* ── Left: seller cover image + overlay ── */
+.seller-card__left {
+  position: relative;
+  width: 300px;
   flex-shrink: 0;
 }
 
-.seller-card__details {
-  flex: 1;
+.seller-card__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.seller-card__overlay {
+  position: absolute;
+  inset: 0;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: flex-end;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.2) 55%, transparent 100%);
+  color: var(--color-white);
 }
 
 .seller-card__category {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--color-accent);
-  background: rgba(232, 54, 61, 0.08);
+  background: var(--color-accent);
   padding: 3px 10px;
   border-radius: 50px;
   display: inline-block;
   width: fit-content;
+  margin-bottom: 6px;
 }
 
 .seller-card__name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--color-text-dark);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-white);
+  line-height: 1.25;
+  margin-bottom: 6px;
 }
 
 .seller-card__description {
-  font-size: 0.93rem;
-  color: var(--color-text-medium);
-  line-height: 1.6;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
 }
 
-.seller-card__footer {
+.seller-card__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  gap: 8px;
 }
 
 .seller-card__rating {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #f4a520;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f9e14b;
 }
 
 .seller-card__btn {
   background: var(--color-accent);
   color: var(--color-white);
-  padding: 9px 22px;
+  padding: 8px 18px;
   border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background-color 0.2s, transform 0.2s;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background-color 0.2s, transform 0.15s;
+  white-space: nowrap;
 }
 
 .seller-card__btn:hover {
@@ -86,13 +100,65 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 600px) {
-  .seller-card__info {
+.seller-card__btn:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+/* ── Right: product carousel ── */
+.seller-card__right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 20px 8px;
+  background: var(--color-primary);
+  min-width: 0;
+}
+
+.seller-card__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-dark);
+  flex-shrink: 0;
+  transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+  cursor: pointer;
+}
+
+.seller-card__arrow:hover:not(:disabled) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-white);
+}
+
+.seller-card__arrow:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.seller-card__arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .seller-card {
     flex-direction: column;
   }
 
-  .seller-card__image {
+  .seller-card__left {
     width: 100%;
-    height: 200px;
+    height: 220px;
+  }
+
+  .seller-card__right {
+    padding: 16px 8px;
   }
 }
