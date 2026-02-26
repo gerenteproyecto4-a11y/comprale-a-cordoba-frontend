@@ -36,7 +36,10 @@ export default function CheckoutForm() {
   const { items, total, updateQuantity, clearCart } = useCart();
   const { data: citiesData } = useAllCities();
 
-  const cities = useMemo(() => citiesData?.allCities?.items || [], [citiesData]);
+    const cities = useMemo(() => {
+      const list = citiesData?.allCities?.items || [];
+      return [...list].sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || ''), 'es'));
+    }, [citiesData]);
 
   const [form, setForm] = useState({
     fullName: '',

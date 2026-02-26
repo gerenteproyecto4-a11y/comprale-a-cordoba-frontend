@@ -22,7 +22,6 @@ function clampQty(qty, stock) {
 function decodeHtmlEntities(input) {
   const s = String(input || '');
   if (!s) return '';
-  // SSR safety
   if (typeof globalThis.window === 'undefined') return s;
 
   const txt = document.createElement('textarea');
@@ -42,8 +41,8 @@ function stripHtml(html) {
 /** Normalize NBSP and repeated spaces */
 function normalizeSpaces(text) {
   return String(text || '')
-    .replace(/\u00A0/g, ' ') // NBSP character
-    .replace(/&nbsp;/gi, ' ') // if any literal &nbsp; remains
+    .replace(/\u00A0/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -74,15 +73,9 @@ export default function ProductDetailClient({ product, sellerId }) {
   const totalPrice = useMemo(() => unitPrice * (Number(quantity) || 1), [unitPrice, quantity]);
 
   const cleanDescription = useMemo(() => {
-    // 1) decode entities
     const decoded = decodeHtmlEntities(product.description);
-
-    // 2) remove tags if any
     const stripped = stripHtml(decoded);
-
-    // 3) normalize spaces (&nbsp; / NBSP)
     const normalized = normalizeSpaces(stripped);
-
     return normalized || 'Sin descripción disponible.';
   }, [product.description]);
 
@@ -93,15 +86,9 @@ export default function ProductDetailClient({ product, sellerId }) {
 
   const similarScrollRef = useRef(null);
 
-  // =========================
-  // Similar scroll behavior
-  // =========================
+  // Pause/resume auto-scroll on interaction
   const resumeTimerRef = useRef(null);
   const [paused, setPaused] = useState(false);
-
-  const isDownRef = useRef(false);
-  const startXRef = useRef(0);
-  const startScrollLeftRef = useRef(0);
 
   const pauseAuto = useCallback(() => {
     setPaused(true);
@@ -125,6 +112,53 @@ export default function ProductDetailClient({ product, sellerId }) {
     return cardW + gap;
   }, []);
 
+  const scrollByStep = useCallback(
+    (dir) => {
+      const el = similarScrollRef.current;
+      if (!el) return;
+      pauseAuto();
+      el.scrollBy({ left: dir * getStepPx(), behavior: 'smooth' });
+    },
+    [getStepPx, pauseAuto]
+  );
+
+  // ✅ Arrow enable/disable based on scroll position
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+
+  const updateArrowState = useCallback(() => {
+    const el = similarScrollRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const left = el.scrollLeft;
+
+    setCanPrev(left > 4);
+    setCanNext(left < max - 4);
+  }, []);
+
+  useEffect(() => {
+    updateArrowState();
+  }, [similarItems, updateArrowState]);
+
+  useEffect(() => {
+    const el = similarScrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      pauseAuto();
+      updateArrowState();
+
+      // keep infinite pagination trigger
+      if (!hasNextPage || isFetchingNextPage) return;
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 120) {
+        fetchNextPage();
+      }
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, pauseAuto, updateArrowState]);
+
+  // Auto-scroll (optional): loops back to start when reaching end
   useEffect(() => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -142,80 +176,17 @@ export default function ProductDetailClient({ product, sellerId }) {
     return () => window.clearInterval(id);
   }, [similarItems, paused, getStepPx]);
 
-  const handleSimilarWheel = (e) => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-
-    const dx = Math.abs(e.deltaX);
-    const dy = Math.abs(e.deltaY);
-
-    if (dy > dx) {
-      e.preventDefault();
-      el.scrollBy({ left: e.deltaY, behavior: 'auto' });
-      pauseAuto();
-    }
-  };
-
-  const handleSimilarPointerDown = (e) => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-    if (e.button !== undefined && e.button !== 0) return;
-
-    isDownRef.current = true;
-    el.classList.add('pdp__similar-scroll--dragging');
-    startXRef.current = e.clientX;
-    startScrollLeftRef.current = el.scrollLeft;
-    pauseAuto();
-  };
-
-  const handleSimilarPointerMove = (e) => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-    if (!isDownRef.current) return;
-
-    const walk = e.clientX - startXRef.current;
-    el.scrollLeft = startScrollLeftRef.current - walk;
-  };
-
-  const endSimilarDrag = () => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-    isDownRef.current = false;
-    el.classList.remove('pdp__similar-scroll--dragging');
-  };
-
+  // Keyboard when focused
   const handleSimilarKeyDown = (e) => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      pauseAuto();
-      el.scrollBy({ left: getStepPx(), behavior: 'smooth' });
+      scrollByStep(1);
     }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      pauseAuto();
-      el.scrollBy({ left: -getStepPx(), behavior: 'smooth' });
+      scrollByStep(-1);
     }
   };
-
-  useEffect(() => {
-    const el = similarScrollRef.current;
-    if (!el) return;
-
-    const handleScroll = () => {
-      pauseAuto();
-
-      if (!hasNextPage || isFetchingNextPage) return;
-      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 120) {
-        fetchNextPage();
-      }
-    };
-
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, pauseAuto]);
 
   // ✅ only for "Comprar"
   const [buyAdded, setBuyAdded] = useState(false);
@@ -357,7 +328,34 @@ export default function ProductDetailClient({ product, sellerId }) {
 
           {(similarItems.length > 0 || similarLoading) && (
             <section className="pdp__similar" aria-label="Artículos similares">
-              <h2 className="pdp__similar-title">Artículos similares</h2>
+              <div className="pdp__similar-head">
+                <h2 className="pdp__similar-title">Artículos similares</h2>
+
+                <div className="pdp__similar-arrows" aria-hidden="false">
+                  <button
+                    type="button"
+                    className="pdp__similar-arrow"
+                    onClick={() => scrollByStep(-1)}
+                    disabled={!canPrev}
+                    aria-label="Anteriores"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="pdp__similar-arrow"
+                    onClick={() => scrollByStep(1)}
+                    disabled={!canNext}
+                    aria-label="Siguientes"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
               <div
                 className="pdp__similar-scroll"
@@ -366,22 +364,11 @@ export default function ProductDetailClient({ product, sellerId }) {
                 aria-label="Productos similares"
                 tabIndex={0}
                 onKeyDown={handleSimilarKeyDown}
-                onWheel={handleSimilarWheel}
-                onPointerDown={handleSimilarPointerDown}
-                onPointerMove={handleSimilarPointerMove}
-                onPointerUp={endSimilarDrag}
-                onPointerCancel={endSimilarDrag}
-                onPointerLeave={endSimilarDrag}
                 onMouseEnter={pauseAuto}
                 onFocus={pauseAuto}
               >
                 {similarItems.map(({ id, sku, name, price, image, sellerId: sid, sellerName: sname }) => (
-                  <ProductItem
-                    key={`${sid}-${id}`}
-                    product={{ id, sku, name, price, image }}
-                    sellerId={sid}
-                    sellerName={sname}
-                  />
+                  <ProductItem key={`${sid}-${id}`} product={{ id, sku, name, price, image }} sellerId={sid} sellerName={sname} />
                 ))}
                 {(similarLoading || isFetchingNextPage) &&
                   Array.from({ length: 3 }).map((_, i) => (
