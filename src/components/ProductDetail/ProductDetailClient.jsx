@@ -18,6 +18,36 @@ function clampQty(qty, stock) {
   return Math.min(Math.max(1, qty), stock);
 }
 
+/** Decodes HTML entities like &lt; &nbsp; &oacute; etc. */
+function decodeHtmlEntities(input) {
+  const s = String(input || '');
+  if (!s) return '';
+  // SSR safety
+  if (typeof globalThis.window === 'undefined') return s;
+
+  const txt = document.createElement('textarea');
+  txt.innerHTML = s;
+  return txt.value;
+}
+
+/** Remove HTML tags and cleanup whitespace */
+function stripHtml(html) {
+  return String(html || '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Normalize NBSP and repeated spaces */
+function normalizeSpaces(text) {
+  return String(text || '')
+    .replace(/\u00A0/g, ' ') // NBSP character
+    .replace(/&nbsp;/gi, ' ') // if any literal &nbsp; remains
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const AUTOSCROLL_MS = 3500;
 const RESUME_AFTER_MS = 2500;
 
@@ -43,6 +73,19 @@ export default function ProductDetailClient({ product, sellerId }) {
   const unitPrice = Number(product.price) || 0;
   const totalPrice = useMemo(() => unitPrice * (Number(quantity) || 1), [unitPrice, quantity]);
 
+  const cleanDescription = useMemo(() => {
+    // 1) decode entities
+    const decoded = decodeHtmlEntities(product.description);
+
+    // 2) remove tags if any
+    const stripped = stripHtml(decoded);
+
+    // 3) normalize spaces (&nbsp; / NBSP)
+    const normalized = normalizeSpaces(stripped);
+
+    return normalized || 'Sin descripción disponible.';
+  }, [product.description]);
+
   const { data: similarData, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching: similarLoading } =
     useSimilarProducts({ excludeProductId: product.id });
 
@@ -51,7 +94,7 @@ export default function ProductDetailClient({ product, sellerId }) {
   const similarScrollRef = useRef(null);
 
   // =========================
-  // ✅ Similar scroll behavior (same as SellerSection)
+  // Similar scroll behavior
   // =========================
   const resumeTimerRef = useRef(null);
   const [paused, setPaused] = useState(false);
@@ -82,7 +125,6 @@ export default function ProductDetailClient({ product, sellerId }) {
     return cardW + gap;
   }, []);
 
-  // Auto-scroll (loops back to start when reaching end)
   useEffect(() => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -100,7 +142,6 @@ export default function ProductDetailClient({ product, sellerId }) {
     return () => window.clearInterval(id);
   }, [similarItems, paused, getStepPx]);
 
-  // Wheel: vertical wheel scrolls horizontally
   const handleSimilarWheel = (e) => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -115,7 +156,6 @@ export default function ProductDetailClient({ product, sellerId }) {
     }
   };
 
-  // Drag
   const handleSimilarPointerDown = (e) => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -144,7 +184,6 @@ export default function ProductDetailClient({ product, sellerId }) {
     el.classList.remove('pdp__similar-scroll--dragging');
   };
 
-  // Keyboard when focused
   const handleSimilarKeyDown = (e) => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -161,7 +200,6 @@ export default function ProductDetailClient({ product, sellerId }) {
     }
   };
 
-  // Keep your infinite pagination trigger (load more when reaching end)
   useEffect(() => {
     const el = similarScrollRef.current;
     if (!el) return;
@@ -179,17 +217,23 @@ export default function ProductDetailClient({ product, sellerId }) {
     return () => el.removeEventListener('scroll', handleScroll);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, pauseAuto]);
 
-  const handleBuyNow = () => {
+  // ✅ only for "Comprar"
+  const [buyAdded, setBuyAdded] = useState(false);
+
+  const handleBuyNow = async () => {
     if (typeof stock === 'number' && stock <= 0) return;
     const safeQty = clampQty(quantity, stock);
+
     addItem(product, sellerId, safeQty, sellerName);
+
+    setBuyAdded(true);
+    await new Promise((r) => setTimeout(r, 250));
+
     router.push('/checkout');
   };
 
+  // ✅ does NOT add to cart, no "Agregado"
   const handleSelectMore = () => {
-    if (typeof stock === 'number' && stock <= 0) return;
-    const safeQty = clampQty(quantity, stock);
-    addItem(product, sellerId, safeQty, sellerName);
     router.push('/');
   };
 
@@ -237,7 +281,7 @@ export default function ProductDetailClient({ product, sellerId }) {
             <div className="pdp__info-panel">
               <div className="pdp__desc-section">
                 <p className="pdp__desc-label">Descripción</p>
-                <p className="pdp__desc-text">{product.description || 'Sin descripción disponible.'}</p>
+                <p className="pdp__desc-text">{cleanDescription}</p>
               </div>
 
               <div className="pdp__stock-row">
@@ -290,7 +334,7 @@ export default function ProductDetailClient({ product, sellerId }) {
                 disabled={isOutOfStock}
                 style={isOutOfStock ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
               >
-                Comprar
+                {buyAdded ? 'Agregado ✓' : 'Comprar'}
               </button>
 
               <button
@@ -332,7 +376,12 @@ export default function ProductDetailClient({ product, sellerId }) {
                 onFocus={pauseAuto}
               >
                 {similarItems.map(({ id, sku, name, price, image, sellerId: sid, sellerName: sname }) => (
-                  <ProductItem key={`${sid}-${id}`} product={{ id, sku, name, price, image }} sellerId={sid} sellerName={sname} />
+                  <ProductItem
+                    key={`${sid}-${id}`}
+                    product={{ id, sku, name, price, image }}
+                    sellerId={sid}
+                    sellerName={sname}
+                  />
                 ))}
                 {(similarLoading || isFetchingNextPage) &&
                   Array.from({ length: 3 }).map((_, i) => (

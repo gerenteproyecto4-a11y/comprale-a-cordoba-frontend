@@ -6,7 +6,7 @@ import Navbar from '../../../components/Navbar/Navbar';
 import Footer from '../../../components/Footer/Footer';
 import { useCategories } from '../../../hooks/useCategories';
 import { useProductsByCategory } from '../../../hooks/useProductsByCategory';
-import { useCart } from '../../../context/CartContext';
+import AddToCartButton from '../../../components/Cart/AddToCartButton';
 import '../../../pages/CategoryPage.css';
 
 const formatPrice = (price) =>
@@ -14,7 +14,6 @@ const formatPrice = (price) =>
 
 function CategoryContent({ id }) {
   const router = useRouter();
-  const { addItem } = useCart();
 
   const { data: catData } = useCategories();
 
@@ -89,13 +88,15 @@ function CategoryContent({ id }) {
 
                       <p className="cat-card__price">{formatPrice(product.price)}</p>
 
-                      <button
-                        className="cat-card__btn"
-                        type="button"
-                        onClick={() => addItem(product, product.sellerId, 1, product.sellerName)}
-                      >
-                        Agregar al carrito
-                      </button>
+                      <AddToCartButton
+                      className="cat-card__btn"
+                      product={product}
+                      sellerId={product.sellerId}
+                      sellerName={product.sellerName}
+                      quantity={1}
+                    >
+                      Agregar al carrito
+                    </AddToCartButton>
                     </div>
                   </article>
                 ))}

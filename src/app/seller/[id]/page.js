@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSellerById } from '../../../hooks/useSellerById';
 import { useProductsBySellerInfinite } from '../../../hooks/useProductsBySellerInfinite';
 import { useInfiniteScrollTrigger } from '../../../hooks/useInfiniteScrollTrigger';
-import { useCart } from '../../../context/CartContext';
+import AddToCartButton from '../../../components/Cart/AddToCartButton';
 import Navbar from '../../../components/Navbar/Navbar';
 import Footer from '../../../components/Footer/Footer';
 import '../../../pages/SellerDetailPage.css';
@@ -26,7 +26,6 @@ function ensureHiRes(url) {
 
 function SellerDetailContent({ id }) {
   const router = useRouter();
-  const { addItem } = useCart();
 
   const sellerIdNum = Number(id);
 
@@ -55,22 +54,19 @@ function SellerDetailContent({ id }) {
     return out;
   }, [productsQ.data]);
 
-  const sellerName = seller?.shop_title || 'Negocio';
+  const sellerName = seller?.shop_title || 'Ayuda a Cordoba';
   const sellerDescription = seller?.description || '';
   const bannerUrl = ensureHiRes(seller?.banner_pic || '');
 
   const loading = sellerLoading || productsQ.isLoading;
 
-  // ✅ define canLoadMore early
   const canLoadMore = !!productsQ.hasNextPage && !productsQ.isFetchingNextPage;
 
-  // ✅ stable callback for hook deps
   const loadMore = useCallback(() => {
     if (!canLoadMore) return;
     productsQ.fetchNextPage();
   }, [canLoadMore, productsQ]);
 
-  // ✅ IMPORTANT: call hook ALWAYS (no conditional)
   const sentinelRef = useInfiniteScrollTrigger({
     enabled: !loading && !sellerError && !!seller && canLoadMore,
     onLoadMore: loadMore,
@@ -158,15 +154,20 @@ function SellerDetailContent({ id }) {
 
                         <p className="sdp-card__price">{formatPrice(product.price)}</p>
 
-                        <button className="sdp-card__btn" type="button" onClick={() => addItem(product, id, 1, sellerName)}>
+                        <AddToCartButton
+                          className="sdp-card__btn"
+                          product={product}
+                          sellerId={id}
+                          sellerName={sellerName}
+                          quantity={1}
+                        >
                           Agregar al carrito
-                        </button>
+                        </AddToCartButton>
                       </div>
                     </article>
                   ))}
                 </div>
 
-                {/* sentinel always exists; it just won't load when disabled */}
                 <div ref={sentinelRef} style={{ height: 1 }} />
 
                 {productsQ.isFetchingNextPage ? <p className="sdp-products__state">Cargando más productos…</p> : null}
