@@ -6,9 +6,9 @@ import Navbar from '../Navbar/Navbar';
 import Hero from '../Hero/Hero';
 import HowItWorks from '../HowItWorks/HowItWorks';
 import SellerSection from '../SellerSection/SellerSection';
-import Stats from '../Stats/Stats';
+// import Stats from '../Stats/Stats';
 import Footer from '../Footer/Footer';
-import { stats } from '../../data/mockData';
+// import { stats } from '../../data/mockData';
 import { useSellersWithProductsInfinite } from '../../hooks/useSellersWithProductsInfinite';
 import { useInfiniteScrollTrigger } from '../../hooks/useInfiniteScrollTrigger';
 import OrderSuccessFromUrl from '../OrderSuccessModal/OrderSuccessFromUrl';
@@ -69,7 +69,7 @@ export default function HomePageView() {
         </section>
 
         <div ref={sentinelRef} className="home-infinite__sentinel" />
-        <Stats stats={stats} />
+        {/* <Stats stats={stats} /> */}
         <Footer sponsors={[]} />
       </main>
     </div>

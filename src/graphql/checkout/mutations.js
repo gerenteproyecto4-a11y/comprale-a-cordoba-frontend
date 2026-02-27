@@ -25,7 +25,6 @@ export const ADD_PRODUCTS_TO_CART = gql`
   }
 `;
 
-
 export const CREATE_CHECKOUT_PAYMENT = gql`
   mutation CreateCheckoutPayment(
     $cartId: String!
@@ -36,6 +35,7 @@ export const CREATE_CHECKOUT_PAYMENT = gql`
     $city: String!
     $regionId: Int!
     $telephone: String!
+    $vatId: String!
   ) {
     CreateCheckoutPayment(
       input: {
@@ -50,6 +50,7 @@ export const CREATE_CHECKOUT_PAYMENT = gql`
             region_id: $regionId
             country_code: "CO"
             telephone: $telephone
+            vat_id: $vatId
           }
         }
         shipping_addresses: [

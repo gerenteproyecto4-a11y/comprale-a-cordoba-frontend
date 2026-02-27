@@ -224,8 +224,7 @@ export function useCheckoutForm() {
         });
 
         const userErrors = addRes?.addProductsToCart?.user_errors || [];
-        if (userErrors.length)
-          throw new Error(userErrors[0]?.message || 'Error agregando productos al carrito (cotización).');
+        if (userErrors.length) throw new Error(userErrors[0]?.message || 'Error agregando productos al carrito (cotización).');
 
         if (!cancelled && nonce === syncNonceRef.current) setEstimateCartId(newCartId);
       } catch (e) {
@@ -331,6 +330,7 @@ export function useCheckoutForm() {
 
     const firstname = form.firstName.trim();
     const lastname = form.lastName.trim();
+    const vatId = form.idNumber.trim();
 
     try {
       const cartData = await graphqlGuestClient.request(CREATE_GUEST_CART);
@@ -358,6 +358,7 @@ export function useCheckoutForm() {
         city: form.cityName,
         regionId: regionIdInt,
         telephone: form.phone,
+        vatId,
       });
 
       const payment = checkoutPaymentRes?.CreateCheckoutPayment?.payment || null;
