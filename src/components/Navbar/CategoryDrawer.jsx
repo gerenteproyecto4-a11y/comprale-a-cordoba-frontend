@@ -80,6 +80,16 @@ export default function CategoryDrawer({ open, onClose }) {
             ))}
           </ul>
         )}
+
+        {/* ✅ tiny footer note (returns) */}
+        <div className="cat-drawer__footer" aria-label="Información de devoluciones">
+          <p className="cat-drawer__returns">
+            ¿Necesitas hacer una devolución? Escríbenos a{' '}
+            <a className="cat-drawer__returnsLink" href="mailto:Soporte@compraleacordoba.com">
+              Soporte@compraleacordoba.com
+            </a>
+          </p>
+        </div>
       </aside>
     </>,
     portalTarget

@@ -57,7 +57,7 @@ function Hero({ nextSectionRef }) {
         </h1>
 
         <p className="hero__subtitle">
-          Un marketplace hecho para ayudarle a los
+          Un marketplace hecho para ayudar a los
           <br />
           emprendedores de Córdoba a reempezar.
         </p>

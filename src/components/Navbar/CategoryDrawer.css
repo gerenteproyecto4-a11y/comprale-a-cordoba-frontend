@@ -129,3 +129,28 @@
   outline: 2px solid rgba(232, 54, 61, 0.7);
   outline-offset: -2px;
 }
+
+/* ✅ tiny footer note */
+.cat-drawer__footer {
+  flex-shrink: 0;
+  padding: 10px 24px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cat-drawer__returns {
+  margin: 0;
+  font-size: 0.53rem; /* very small */
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.cat-drawer__returnsLink {
+  color: inherit;
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.cat-drawer__returnsLink:hover {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.65);
+}
