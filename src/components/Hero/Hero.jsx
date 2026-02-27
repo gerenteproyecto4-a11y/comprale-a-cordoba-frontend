@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import './Hero.css';
 
 const HERO_BANNER_URL = '/hero-banner.jpeg';
-const HERO_BANNER_MOBILE_URL = '/banner-mobile.jpg';
+const HERO_BANNER_MOBILE_URL = '/banner-mobile.jpeg';
 
 function Hero({ nextSectionRef }) {
   const heroRef = useRef(null);

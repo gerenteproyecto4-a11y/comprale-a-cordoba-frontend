@@ -15,8 +15,6 @@
   padding: 6px 2px 10px;
 
   -webkit-overflow-scrolling: touch;
-
-  /* hide scrollbar but keep scroll */
   scrollbar-width: none;
 }
 
@@ -38,4 +36,27 @@
 .product-scroll__track--dragging {
   cursor: grabbing;
   scroll-behavior: auto;
+}
+
+/* ✅ MOBILE: 2 columns always */
+@media (max-width: 575px) {
+  :root {
+    --ps-gap: 10px;
+    --ps-pad-x: 12px; /* el padding lateral que quieres */
+  }
+
+  .product-scroll__track {
+    gap: var(--ps-gap);
+
+    /* ✅ mantenemos padding para que no pegue a bordes */
+    padding: 6px var(--ps-pad-x) 8px;
+
+    align-items: flex-start;
+  }
+
+  /* ✅ IMPORTANT: el ancho va aquí (este es el flex item real) */
+  .product-scroll__item {
+    flex: 0 0 calc((100% - (2 * var(--ps-pad-x)) - var(--ps-gap)) / 2);
+    scroll-snap-align: start;
+  }
 }

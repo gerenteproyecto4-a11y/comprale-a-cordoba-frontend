@@ -191,3 +191,32 @@
     transition: none;
   }
 }
+@media (max-width: 575px) {
+  .product-item {
+    width: 100%;
+    flex: none; /* el tamaño lo controla .product-scroll__item */
+    height: 250px;
+    border-radius: 14px;
+  }
+
+  .product-item__image {
+    height: 155px;
+  }
+
+  .product-item__body {
+    height: calc(250px - 155px - 1px);
+    padding: 10px 10px;
+  }
+
+  .product-item__name,
+  .product-item__price {
+    font-size: 0.82rem;
+  }
+
+  .product-item__add {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 10px;
+  }
+}

@@ -21,6 +21,11 @@ function ensureHiRes(url) {
   }
 }
 
+function stripHtmlText(v) {
+  if (!v) return '';
+  return String(v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export default function SellerDetailPageView({ id }) {
   const router = useRouter();
 
@@ -43,7 +48,7 @@ export default function SellerDetailPageView({ id }) {
           name: p.name,
           price: p.price_range?.minimum_price?.final_price?.value ?? 0,
           image: p.image?.url || '',
-          description: p.description?.html?.replace(/<[^>]*>/g, '').trim() || '',
+          description: stripHtmlText(p.description?.html),
         });
       }
     }
@@ -52,6 +57,7 @@ export default function SellerDetailPageView({ id }) {
 
   const sellerName = seller?.shop_title || 'Ayuda a Cordoba';
   const bannerUrl = ensureHiRes(seller?.banner_pic || '');
+  const sellerDescription = stripHtmlText(seller?.description || seller?.shop_description || '');
 
   const loading = sellerLoading || productsQ.isLoading;
   const canLoadMore = !!productsQ.hasNextPage && !productsQ.isFetchingNextPage;
@@ -110,6 +116,13 @@ export default function SellerDetailPageView({ id }) {
               <div className="sdp-hero__overlay" aria-hidden="true" />
               <h1 className="sdp-hero__title">{sellerName}</h1>
             </div>
+
+            {/* ✅ only description below image */}
+            {sellerDescription ? (
+              <div className="sdp-hero__descCard" aria-label="Descripción del negocio">
+                <p className="sdp-hero__descText">{sellerDescription}</p>
+              </div>
+            ) : null}
           </div>
         </header>
 
@@ -130,9 +143,7 @@ export default function SellerDetailPageView({ id }) {
                 <div ref={sentinelRef} style={{ height: 1 }} />
 
                 {productsQ.isFetchingNextPage ? <p className="sdp-products__state">Cargando más productos…</p> : null}
-                {!productsQ.hasNextPage && products.length > 0 ? (
-                  <p className="sdp-products__state"></p>
-                ) : null}
+                {!productsQ.hasNextPage && products.length > 0 ? <p className="sdp-products__state"></p> : null}
               </>
             )}
           </div>

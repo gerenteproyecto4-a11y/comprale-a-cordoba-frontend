@@ -76,7 +76,10 @@
 .checkout__col {
   border-radius: 8px;
   overflow: hidden;
-  min-height: 620px;
+
+  /* ✅ was: min-height: 620px; (this breaks when form text grows) */
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
 }
@@ -87,6 +90,9 @@
   padding: 28px 24px;
   border-radius: 8px 0 0 8px;
   position: relative;
+
+  /* ✅ keep a baseline height but allow growth */
+  min-height: 620px;
 }
 
 .checkout__col-title {
@@ -296,6 +302,7 @@
   display: flex;
   flex-direction: column;
 
+  /* ✅ keep baseline height but allow growth */
   min-height: 620px;
   min-width: 0;
 }
@@ -479,13 +486,33 @@
   display: none;
 }
 
+/* ✅ Desktop: do NOT force fixed height; let it grow if needed */
 @media (min-width: 769px) {
+  /* give the grid a real height so 100% works */
+  .checkout__main {
+    /* this already exists, but ensure it can host a fixed-height grid */
+    align-items: center;
+  }
+
+  .checkout__grid {
+    /* ✅ define a height so both columns can stretch equally */
+    height: min(720px, calc(100vh - var(--nav-h) - 70px));
+  }
+
+  /* ✅ both columns take full grid height (same height) */
+  .checkout__col--form,
   .checkout__col--summary.checkout__summary-desktop {
-    height: 620px;
-    min-height: 620px;
+    height: 100%;
+    min-height: 0; /* important so internal flex children can shrink */
+  }
+
+  /* keep summary scroll working */
+  .checkout__summary-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
   }
 }
-
 /* ===========================
    Responsive base layout
    =========================== */

@@ -21,7 +21,7 @@
    ───────────────────────────────────────────── */
 .sdp-hero {
   margin-top: 128px;
-  padding: 26px 0 0; /* container handles side padding */
+  padding: 26px 0 0;
 }
 
 .sdp-hero__frame {
@@ -83,18 +83,33 @@
   text-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 
+/* ✅ description BELOW banner (no card look) */
+.sdp-hero__descCard {
+  margin-top: 12px;
+  padding: 0;              /* no padding */
+  border: none;            /* no border */
+  border-radius: 0;        /* no radius */
+  background: transparent; /* no background */
+  box-shadow: none;        /* no shadow */
+}
+
+.sdp-hero__descText {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-poppins);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 /* ─────────────────────────────────────────────
-   Products grid (use SAME card as home: ProductItem)
+   Products grid
    ───────────────────────────────────────────── */
 .sdp-products {
-  padding: 22px 0 70px; /* container handles side padding */
+  padding: 22px 0 70px;
 }
 
 .sdp-products__grid {
   display: grid;
-
-  /* ✅ grid columns (desktop 4, mobile 2) but using ProductItem which has fixed widths;
-     so we override sizing with an extra rule in ProductItem.css below */
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
@@ -138,6 +153,10 @@
   .sdp-products__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+  }
+
+  .sdp-hero__descText {
+    font-size: 0.92rem;
   }
 }
 

@@ -23,7 +23,6 @@
 
   z-index: 0;
 
-  /* keep filter on container so it applies to chosen image */
   filter: saturate(1.05) contrast(1.05);
 }
 
@@ -154,6 +153,12 @@
 }
 
 @media (max-width: 768px) {
+  /* ✅ make hero shorter on mobile (~80% of viewport) */
+  .hero {
+    min-height: 80vh;
+    min-height: 80dvh;
+  }
+
   .hero__title {
     transform: translate(-50%, -58%);
     width: min(1100px, 94vw);

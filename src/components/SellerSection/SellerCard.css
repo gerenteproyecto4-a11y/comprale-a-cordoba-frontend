@@ -179,7 +179,7 @@
 @media (max-width: 980px) {
   .seller-card {
     flex-direction: column;
-    height: auto; /* allow natural height on mobile */
+    height: auto; /* allow natural height on mobile/tablet */
   }
 
   .seller-card__left {
@@ -209,5 +209,87 @@
 
   .seller-card__arrow--next {
     right: -18px;
+  }
+}
+.seller-card__name--mobile {
+  display: none;
+}
+
+/* ✅ MOBILE COMPACT LAYOUT */
+@media (max-width: 575px) {
+  .seller-card {
+    flex-direction: column;
+    height: auto;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .seller-card__arrow {
+    display: none;
+  }
+
+  .seller-card__right {
+    order: 1;
+    padding: 10px 12px 8px;
+    height: auto;
+    overflow: hidden;
+    border-radius: 0;
+    background: #2d2d2d;
+  }
+
+  .seller-card__left {
+    order: 2;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .seller-card__image-wrap,
+  .seller-card__description {
+    display: none;
+  }
+
+  .seller-card__info {
+    height: auto;
+    padding: 10px 12px 12px;
+    background: #2d2d2d;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ✅ show mobile title here */
+  .seller-card__name--mobile {
+    display: block;
+    margin: 0;
+
+    font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* keep overlay title hidden since image-wrap is hidden anyway */
+  .seller-card__name-overlay {
+    display: none;
+  }
+
+  /* ✅ button pinned to the right, not full width */
+  .seller-card__btn {
+    margin-left: auto;
+    width: auto;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    border-radius: 10px;
   }
 }

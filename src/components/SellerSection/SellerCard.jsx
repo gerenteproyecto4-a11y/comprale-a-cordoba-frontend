@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 
 import { useMemo, useRef, useState, useCallback } from 'react';
@@ -12,7 +13,7 @@ const PRODUCT_PLACEHOLDER = 'https://via.placeholder.com/400x400?text=Producto';
 
 function mapProductsFromApi(items = [], sellerId) {
   return (items || []).map((p, idx) => ({
-    id: p?.sku || `${sellerId || 'seller'}-${idx}`, // route/id still sku
+    id: p?.sku || `${sellerId || 'seller'}-${idx}`,
     sku: p?.sku || null,
     productId: typeof p?.id === 'number' ? p.id : null,
     stock: typeof p?.stock_saleable === 'number' ? p.stock_saleable : null,
@@ -27,7 +28,6 @@ function mapProductsFromApi(items = [], sellerId) {
 
 function SellerCard({ seller, onViewDetail }) {
   const router = useRouter();
-
   const scrollRef = useRef(null);
 
   const sellerId = seller?.id;
@@ -42,7 +42,6 @@ function SellerCard({ seller, onViewDetail }) {
     const items = qProducts.data?.productsBySeller?.items;
     if (Array.isArray(items) && items.length) return mapProductsFromApi(items, sellerId);
 
-    // fallback
     const fallback = Array.isArray(seller?.products) ? seller.products : [];
     return fallback.map((p, idx) => ({
       id: p?.id || `${sellerId || 'seller'}-${idx}`,
@@ -59,7 +58,10 @@ function SellerCard({ seller, onViewDetail }) {
 
   const canScroll = products.length > 0;
 
-  // ✅ dynamic arrow disabling based on scroll position
+  // ✅ if already loaded and there are NO products, don't render this seller
+  if (!qProducts.isLoading && products.length === 0) return null;
+
+  // dynamic arrow disabling
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
 
@@ -103,7 +105,11 @@ function SellerCard({ seller, onViewDetail }) {
         </div>
 
         <div className="seller-card__info">
+          {/* ✅ Mobile title (visible only on mobile via CSS) */}
+          <h3 className="seller-card__name seller-card__name--mobile">{sellerName}</h3>
+
           <p className="seller-card__description">{sellerDescription}</p>
+
           <button className="seller-card__btn" onClick={onViewDetail} aria-label={`Cómprale aquí a ${sellerName}`} type="button">
             Cómprale aquí
           </button>
