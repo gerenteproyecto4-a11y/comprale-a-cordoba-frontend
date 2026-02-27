@@ -3,7 +3,7 @@ import { useSellersWithProducts } from './useSellersWithProducts';
 
 const PRODUCT_PLACEHOLDER = 'https://via.placeholder.com/700x700?text=Producto';
 
-export function useProductsByCategory({ categoryId, pageSize = 100, productLimit = 12, currentPage = 1 } = {}) {
+export function useProductsByCategory({ categoryId, pageSize = 100, productLimit = 100, currentPage = 1 } = {}) {
   const idNum = Number(categoryId);
   const idOk = Number.isFinite(idNum) && idNum > 0;
 

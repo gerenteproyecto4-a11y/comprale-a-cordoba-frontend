@@ -40,7 +40,8 @@ export default function CheckoutForm() {
   }, [citiesData]);
 
   const [form, setForm] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     idType: 'C.C',
     idNumber: '',
@@ -63,7 +64,8 @@ export default function CheckoutForm() {
   const canSubmit = useMemo(() => {
     if (processing) return false;
     if (!items?.length) return false;
-    if (!form.fullName.trim()) return false;
+    if (!form.firstName.trim()) return false;
+    if (!form.lastName.trim()) return false;
     if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) return false;
     if (!form.idNumber.trim()) return false;
     if (!form.phone.trim()) return false;
@@ -110,7 +112,8 @@ export default function CheckoutForm() {
         });
 
         const userErrors = addRes?.addProductsToCart?.user_errors || [];
-        if (userErrors.length) throw new Error(userErrors[0]?.message || 'Error agregando productos al carrito (cotización).');
+        if (userErrors.length)
+          throw new Error(userErrors[0]?.message || 'Error agregando productos al carrito (cotización).');
 
         if (!cancelled && nonce === syncNonceRef.current) {
           setEstimateCartId(newCartId);
@@ -172,7 +175,8 @@ export default function CheckoutForm() {
 
   const validate = () => {
     const errs = {};
-    if (!form.fullName.trim()) errs.fullName = 'Requerido';
+    if (!form.firstName.trim()) errs.firstName = 'Requerido';
+    if (!form.lastName.trim()) errs.lastName = 'Requerido';
     if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Email inválido';
     if (!form.idNumber.trim()) errs.idNumber = 'Requerido';
     if (!form.phone.trim()) errs.phone = 'Requerido';
@@ -196,9 +200,8 @@ export default function CheckoutForm() {
     setProcessing(true);
     setSubmitError('');
 
-    const nameParts = form.fullName.trim().split(/\s+/);
-    const firstname = nameParts[0] || form.fullName.trim();
-    const lastname = nameParts.slice(1).join(' ') || '';
+    const firstname = form.firstName.trim();
+    const lastname = form.lastName.trim();
 
     try {
       const cartData = await graphqlGuestClient.request(CREATE_GUEST_CART);
@@ -276,18 +279,35 @@ export default function CheckoutForm() {
               Datos de envío
             </h2>
 
-            <div className="checkout__field checkout__field--full">
-              <input
-                name="fullName"
-                type="text"
-                className={`checkout__input${errors.fullName ? ' checkout__input--error' : ''}`}
-                value={form.fullName}
-                onChange={handleChange}
-                placeholder="Nombre completo*"
-                aria-label="Nombre completo"
-                autoComplete="name"
-              />
-              {errors.fullName && <span className="checkout__error">{errors.fullName}</span>}
+            {/* ✅ First + Last name in the same row */}
+            <div className="checkout__row checkout__row--names">
+              <div className="checkout__field">
+                <input
+                  name="firstName"
+                  type="text"
+                  className={`checkout__input${errors.firstName ? ' checkout__input--error' : ''}`}
+                  value={form.firstName}
+                  onChange={handleChange}
+                  placeholder="Nombre*"
+                  aria-label="Nombre"
+                  autoComplete="given-name"
+                />
+                {errors.firstName && <span className="checkout__error">{errors.firstName}</span>}
+              </div>
+
+              <div className="checkout__field">
+                <input
+                  name="lastName"
+                  type="text"
+                  className={`checkout__input${errors.lastName ? ' checkout__input--error' : ''}`}
+                  value={form.lastName}
+                  onChange={handleChange}
+                  placeholder="Apellidos*"
+                  aria-label="Apellidos"
+                  autoComplete="family-name"
+                />
+                {errors.lastName && <span className="checkout__error">{errors.lastName}</span>}
+              </div>
             </div>
 
             <div className="checkout__field checkout__field--full">
@@ -397,11 +417,7 @@ export default function CheckoutForm() {
               <input type="checkbox" name="acceptTerms" checked={form.acceptTerms} onChange={handleChange} />
               <span>
                 Aceptar{' '}
-                <button
-                  type="button"
-                  className="checkout__link checkout__link--btn"
-                  onClick={() => setTermsOpen(true)}
-                >
+                <button type="button" className="checkout__link checkout__link--btn" onClick={() => setTermsOpen(true)}>
                   Términos y Condiciones
                 </button>
               </span>
@@ -439,21 +455,11 @@ export default function CheckoutForm() {
                   <div className="checkout__item-info">
                     <p className="checkout__item-name">{product.name}</p>
                     <div className="checkout__item-qty" role="group" aria-label={`Cantidad de ${product.name}`}>
-                      <button
-                        type="button"
-                        className="checkout__qty-btn"
-                        onClick={() => updateQuantity(product.id, qty - 1)}
-                        aria-label="Reducir"
-                      >
+                      <button type="button" className="checkout__qty-btn" onClick={() => updateQuantity(product.id, qty - 1)} aria-label="Reducir">
                         −
                       </button>
                       <span aria-live="polite">{qty}</span>
-                      <button
-                        type="button"
-                        className="checkout__qty-btn"
-                        onClick={() => updateQuantity(product.id, qty + 1)}
-                        aria-label="Aumentar"
-                      >
+                      <button type="button" className="checkout__qty-btn" onClick={() => updateQuantity(product.id, qty + 1)} aria-label="Aumentar">
                         +
                       </button>
                     </div>
@@ -475,9 +481,7 @@ export default function CheckoutForm() {
             <div className="checkout__summary">
               <div className="checkout__summary-row">
                 <span>Costo de envío</span>
-                <span>
-                  {cartSyncing || shippingLoading ? '...' : shippingCost !== null ? formatPrice(shippingCost) : '$0'}
-                </span>
+                <span>{cartSyncing || shippingLoading ? '...' : shippingCost !== null ? formatPrice(shippingCost) : '$0'}</span>
               </div>
 
               <div className="checkout__summary-row">

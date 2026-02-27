@@ -429,3 +429,13 @@
   text-decoration: underline;
   font-weight: 600;
 }
+
+.checkout__row--names {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 640px) {
+  .checkout__row--names {
+    grid-template-columns: 1fr;
+  }
+}

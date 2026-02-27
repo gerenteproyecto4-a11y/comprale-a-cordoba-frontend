@@ -3,7 +3,7 @@ import graphqlClient from '../lib/graphqlClient';
 import { PRODUCTS_BY_SELLER } from '../graphql/sellers/queries';
 import { normalizeProductsBySellerResponse } from '../utils/mediaUrl';
 
-export function useProductsBySellerInfinite({ sellerId, pageSize = 12 } = {}) {
+export function useProductsBySellerInfinite({ sellerId, pageSize = 100 } = {}) {
   const idNum = Number(sellerId);
   const enabled = Number.isFinite(idNum) && idNum > 0;
 
