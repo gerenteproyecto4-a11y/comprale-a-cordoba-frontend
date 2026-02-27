@@ -56,7 +56,7 @@ export default function CheckoutForm() {
   // ✅ Mobile summary bottom-sheet
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
-  // ✅ City picker: separate states for desktop vs mobile (no breakpoint hooks needed)
+  // ✅ City picker: separate states for desktop vs mobile
   const [cityDesktopOpen, setCityDesktopOpen] = useState(false);
   const [cityMobileOpen, setCityMobileOpen] = useState(false);
   const [cityQuery, setCityQuery] = useState('');
@@ -146,9 +146,28 @@ export default function CheckoutForm() {
     };
   }, [cityDesktopOpen]);
 
-  // ✅ Mobile: focus + scroll to avoid keyboard hiding the sheet on first open
+  // ✅ Mobile: keep city modal ABOVE keyboard via VisualViewport -> sets CSS var --kb
   useEffect(() => {
     if (!cityMobileOpen) return;
+
+    const root = document.documentElement;
+
+    const updateKb = () => {
+      const vv = window.visualViewport;
+      if (!vv) {
+        root.style.setProperty('--kb', '0px');
+        return;
+      }
+
+      // difference between layout viewport and visual viewport + offsetTop
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      root.style.setProperty('--kb', `${kb}px`);
+    };
+
+    updateKb();
+
+    window.visualViewport?.addEventListener('resize', updateKb);
+    window.visualViewport?.addEventListener('scroll', updateKb);
 
     const t = window.setTimeout(() => {
       try {
@@ -156,10 +175,16 @@ export default function CheckoutForm() {
       } catch {
         cityMobileInputRef.current?.focus?.();
       }
+      // bring sheet into view for some Android browsers
       cityMobileSheetRef.current?.scrollIntoView?.({ block: 'end', behavior: 'smooth' });
     }, 120);
 
-    return () => window.clearTimeout(t);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateKb);
+      window.visualViewport?.removeEventListener('scroll', updateKb);
+      window.clearTimeout(t);
+      root.style.setProperty('--kb', '0px');
+    };
   }, [cityMobileOpen]);
 
   const [errors, setErrors] = useState({});
@@ -268,11 +293,6 @@ export default function CheckoutForm() {
   };
 
   const openCityPicker = () => {
-    // Use CSS to show the right UI:
-    // - Desktop popover is inside the field (cityDesktopOpen)
-    // - Mobile uses the modal (cityMobileOpen)
-    // We can open both, and CSS will hide one; but that complicates focus.
-    // So we pick based on viewport width:
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
       setCityMobileOpen(true);
     } else {
@@ -560,10 +580,7 @@ export default function CheckoutForm() {
               <button
                 type="button"
                 className={`checkout__input checkout__cityBtn${errors.cityId ? ' checkout__input--error' : ''}`}
-                onClick={() => {
-                  // on desktop open inline, on mobile open sheet
-                  openCityPicker();
-                }}
+                onClick={openCityPicker}
                 aria-label="Ciudad"
                 aria-expanded={cityDesktopOpen || cityMobileOpen}
               >
@@ -575,7 +592,6 @@ export default function CheckoutForm() {
 
               {errors.cityId && <span className="checkout__error">{errors.cityId}</span>}
 
-              {/* Desktop inline popover */}
               {cityDesktopOpen && (
                 <div className="checkout__cityPopover" ref={cityDesktopPopoverRef} role="listbox" aria-label="Lista de ciudades">
                   <input
@@ -661,7 +677,7 @@ export default function CheckoutForm() {
             </div>
           </section>
 
-          {/* ✅ Desktop summary (fixed height + internal scroll) */}
+          {/* Desktop summary */}
           <section className="checkout__col checkout__col--summary checkout__summary-desktop" aria-label="Resumen de compra">
             <h2 className="checkout__summary-title">Resumen de compra</h2>
 
@@ -727,7 +743,7 @@ export default function CheckoutForm() {
             </div>
           </section>
 
-          {/* ✅ Mobile bottom sheet summary (existing behavior) */}
+          {/* Mobile bottom sheet summary */}
           <section
             ref={summaryRef}
             className={`checkout__col checkout__col--summary checkout__summary-mobile${

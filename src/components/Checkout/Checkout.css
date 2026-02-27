@@ -1,3 +1,8 @@
+/* keyboard offset for mobile sheets (set by VisualViewport in JS) */
+:root {
+  --kb: 0px;
+}
+
 /* ===== Page shell ===== */
 .checkout {
   min-height: 100vh;
@@ -81,7 +86,7 @@
   background: #f5f5f0;
   padding: 28px 24px;
   border-radius: 8px 0 0 8px;
-  position: relative; /* helps any internal overlays */
+  position: relative;
 }
 
 .checkout__col-title {
@@ -248,11 +253,6 @@
   opacity: 0.7;
 }
 
-/* keep native select hidden (fallback only) */
-.checkout__cityNativeFallback {
-  display: none;
-}
-
 /* ===== DESKTOP: inline city popover (correct anchor) ===== */
 .checkout__cityPopover {
   position: absolute;
@@ -282,6 +282,11 @@
   min-height: 0;
 }
 
+/* keep native select hidden (fallback only) */
+.checkout__cityNativeFallback {
+  display: none;
+}
+
 /* ===== Right column – dark summary card (DESKTOP default) ===== */
 .checkout__col--summary {
   background: #0a0a0a;
@@ -291,7 +296,6 @@
   display: flex;
   flex-direction: column;
 
-  /* ✅ allow internal scroll areas to work */
   min-height: 620px;
   min-width: 0;
 }
@@ -342,7 +346,6 @@
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.25;
 
-  /* prevent long names from blowing layout */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -454,10 +457,10 @@
   cursor: not-allowed;
 }
 
-/* ✅ DESKTOP: internal scroll + pinned bottom totals */
+/* internal scroll + pinned bottom totals */
 .checkout__summary-scroll {
   flex: 1;
-  min-height: 0; /* critical for flex overflow */
+  min-height: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   padding-right: 6px;
@@ -467,7 +470,7 @@
   margin-top: auto;
 }
 
-/* ===== Desktop vs Mobile-only elements (controlled by JSX) ===== */
+/* Desktop vs Mobile-only */
 .checkout__summary-desktop {
   display: flex;
 }
@@ -476,7 +479,6 @@
   display: none;
 }
 
-/* ✅ DESKTOP hard cap: prevent summary from growing with items */
 @media (min-width: 769px) {
   .checkout__col--summary.checkout__summary-desktop {
     height: 620px;
@@ -504,7 +506,6 @@
     border-radius: 8px;
   }
 
-  /* keep desktop summary out of flow on mobile */
   .checkout__summary-desktop {
     display: none;
   }
@@ -517,7 +518,6 @@
     min-height: auto;
   }
 
-  /* On mobile, desktop popover is not used */
   .checkout__cityPopover {
     display: none;
   }
@@ -601,7 +601,6 @@
 }
 
 @media (max-width: 768px) {
-  /* reserve space for the collapsed bar */
   .checkout__main {
     padding-bottom: calc(110px + env(safe-area-inset-bottom));
   }
@@ -721,7 +720,7 @@
 }
 
 /* ===========================
-   MOBILE: city modal sheet (only used on mobile now)
+   MOBILE: city modal sheet (always above keyboard)
    =========================== */
 .checkout__cityModal {
   position: fixed;
@@ -742,13 +741,19 @@
   left: 12px;
   right: 12px;
   top: auto;
-  bottom: calc(12px + env(safe-area-inset-bottom));
+
+  /* ✅ move above keyboard */
+  bottom: calc(12px + env(safe-area-inset-bottom) + var(--kb));
+
   background: #0a0a0a;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.65);
   padding: 12px;
-  max-height: min(72dvh, calc(100dvh - 140px));
+
+  /* ✅ shrink height when keyboard is open */
+  max-height: min(72dvh, calc(100dvh - 140px - var(--kb)));
+
   display: flex;
   flex-direction: column;
   animation: citySheetIn 200ms ease-out;
@@ -799,6 +804,9 @@
   -webkit-overflow-scrolling: touch;
   min-height: 0;
   padding-right: 2px;
+
+  /* ✅ keep last items reachable above keyboard */
+  padding-bottom: 12px;
 }
 
 .checkout__cityOption {
