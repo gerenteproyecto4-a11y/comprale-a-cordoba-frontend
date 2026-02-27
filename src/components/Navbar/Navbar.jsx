@@ -10,6 +10,10 @@ import SearchPanel from './SearchPanel';
 import { useProductSearch } from '../../hooks/useProductSearch';
 import './Navbar.css';
 
+function encodePathSegment(value) {
+  return encodeURIComponent(String(value ?? ''));
+}
+
 function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [trackingQuery, setTrackingQuery] = useState('');
@@ -43,8 +47,10 @@ function Navbar() {
   const handleSelectProduct = (p) => {
     setSearchOpen(false);
     setSearchQuery('');
-    const sid = p?.sellerId ? `?seller=${p.sellerId}` : '';
-    router.push(`/product/${p.sku}${sid}`);
+
+    const sellerQ = p?.sellerId ? `?seller=${encodeURIComponent(String(p.sellerId))}` : '';
+    const productSegment = encodePathSegment(p?.sku); // ✅ critical: prevents invalid % / ñ / spaces issues
+    router.push(`/product/${productSegment}${sellerQ}`);
   };
 
   const shouldAutoOpen = String(searchQuery || '').trim().length >= 2;
@@ -72,7 +78,6 @@ function Navbar() {
                 if (shouldAutoOpen) setSearchOpen(true);
               }}
               aria-label="Buscar productos"
-              /* ✅ make mobile work: input must be usable */
               inputMode="search"
               autoCorrect="off"
               autoCapitalize="none"
