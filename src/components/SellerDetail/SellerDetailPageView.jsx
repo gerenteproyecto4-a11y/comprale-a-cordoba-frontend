@@ -112,8 +112,6 @@ export default function SellerDetailPageView({ id }) {
               ) : (
                 <div className="sdp-hero__fallback" aria-hidden="true" />
               )}
-
-              <div className="sdp-hero__overlay" aria-hidden="true" />
               <h1 className="sdp-hero__title">{sellerName}</h1>
             </div>
 
