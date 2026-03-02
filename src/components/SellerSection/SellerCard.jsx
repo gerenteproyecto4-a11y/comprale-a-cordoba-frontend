@@ -11,19 +11,35 @@ import './SellerCard.css';
 const SELLER_PLACEHOLDER = 'https://via.placeholder.com/600x400?text=Negocio';
 const PRODUCT_PLACEHOLDER = 'https://via.placeholder.com/400x400?text=Producto';
 
-function mapProductsFromApi(items = [], sellerId) {
-  return (items || []).map((p, idx) => ({
-    id: p?.sku || `${sellerId || 'seller'}-${idx}`,
-    sku: p?.sku || null,
-    productId: typeof p?.id === 'number' ? p.id : null,
-    stock: typeof p?.stock_saleable === 'number' ? p.stock_saleable : null,
+function isValidProduct(p) {
+  if (!p) return false;
 
-    name: p?.name || '',
-    price: p?.price_range?.minimum_price?.final_price?.value ?? 0,
-    currency: p?.price_range?.minimum_price?.final_price?.currency || 'COP',
-    image: p?.image?.url || PRODUCT_PLACEHOLDER,
-    description: stripHtml(p?.description?.html),
-  }));
+  const id = p?.sku ?? p?.id ?? p?.productId;
+  if (id === null || id === undefined) return false;
+  const idStr = String(id).trim();
+  if (!idStr) return false;
+
+  const name = String(p?.name ?? '').trim();
+  if (!name) return false;
+
+  return true;
+}
+
+function mapProductsFromApi(items = [], sellerId) {
+  return (items || [])
+    .filter(isValidProduct)
+    .map((p, idx) => ({
+      id: String(p?.sku ?? p?.id ?? `${sellerId || 'seller'}-${idx}`),
+      sku: p?.sku || null,
+      productId: typeof p?.id === 'number' ? p.id : null,
+      stock: typeof p?.stock_saleable === 'number' ? p.stock_saleable : null,
+
+      name: p?.name || '',
+      price: p?.price_range?.minimum_price?.final_price?.value ?? 0,
+      currency: p?.price_range?.minimum_price?.final_price?.currency || 'COP',
+      image: p?.image?.url || PRODUCT_PLACEHOLDER,
+      description: stripHtml(p?.description?.html),
+    }));
 }
 
 function SellerCard({ seller, onViewDetail }) {
@@ -33,34 +49,36 @@ function SellerCard({ seller, onViewDetail }) {
   const sellerId = seller?.id;
   const sellerName = seller?.name || '';
 
-  // ✅ prefer logo, fallback to banner, then placeholder
   const sellerImage = seller?.logo_pic || seller?.banner_pic || SELLER_PLACEHOLDER;
-
   const sellerDescription = stripHtml(seller?.description);
 
   const qProducts = useProductsBySeller({ sellerId, pageSize: 12, currentPage: 1, enabled: true });
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const products = useMemo(() => {
-    const items = qProducts.data?.productsBySeller?.items;
-    if (Array.isArray(items) && items.length) return mapProductsFromApi(items, sellerId);
+    // Prefer API productsBySeller if present
+    const apiItems = qProducts.data?.productsBySeller?.items;
+    if (Array.isArray(apiItems) && apiItems.length) return mapProductsFromApi(apiItems, sellerId);
 
+    // Fallback to sellersWithProducts preloaded products (already mapped)
     const fallback = Array.isArray(seller?.products) ? seller.products : [];
-    return fallback.map((p, idx) => ({
-      id: p?.id || `${sellerId || 'seller'}-${idx}`,
-      sku: p?.sku || p?.id || null,
-      productId: p?.productId ?? null,
-      stock: p?.stock ?? null,
-      name: p?.name || '',
-      price: p?.price ?? 0,
-      currency: 'COP',
-      image: p?.image || PRODUCT_PLACEHOLDER,
-      description: p?.description || '',
-    }));
+    return fallback
+      .filter(isValidProduct)
+      .map((p, idx) => ({
+        id: String(p?.id ?? p?.sku ?? `${sellerId || 'seller'}-${idx}`),
+        sku: p?.sku || p?.id || null,
+        productId: p?.productId ?? null,
+        stock: p?.stock ?? null,
+        name: p?.name || '',
+        price: p?.price ?? 0,
+        currency: 'COP',
+        image: p?.image || PRODUCT_PLACEHOLDER,
+        description: p?.description || '',
+      }));
   }, [qProducts.data, seller?.products, sellerId]);
 
   const canScroll = products.length > 0;
 
+  // ✅ When API finished loading and we still have 0 valid products, don't render the seller
   if (!qProducts.isLoading && products.length === 0) return null;
 
   const [canPrev, setCanPrev] = useState(false);

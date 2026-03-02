@@ -63,6 +63,9 @@ export const PRODUCTS_BY_SELLER = gql`
         image {
           url
         }
+        media_gallery {
+          url
+        }
         description {
           html
         }
