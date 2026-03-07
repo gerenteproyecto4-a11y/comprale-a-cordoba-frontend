@@ -27,21 +27,16 @@ function ensureScriptLoaded(siteKey) {
     if (s) {
       const loaded = s.getAttribute('data-loaded') === 'true';
       if (loaded) {
-        console.log('[recaptcha] script already present (loaded)');
         return resolve(src);
       }
 
-      console.log('[recaptcha] script already present (waiting load)');
-      // wait for the original script to finish loading
       const onLoad = () => {
         s.setAttribute('data-loaded', 'true');
         cleanup();
-        console.log('[recaptcha] script loaded (existing)');
         resolve(src);
       };
       const onError = (e) => {
         cleanup();
-        console.error('[recaptcha] script failed to load (existing)', e);
         reject(e);
       };
       const cleanup = () => {
@@ -54,7 +49,6 @@ function ensureScriptLoaded(siteKey) {
       return;
     }
 
-    console.log('[recaptcha] injecting script:', src);
     s = document.createElement('script');
     s.src = src;
     s.async = true;
@@ -63,7 +57,6 @@ function ensureScriptLoaded(siteKey) {
 
     s.onload = () => {
       s.setAttribute('data-loaded', 'true');
-      console.log('[recaptcha] script loaded (new)');
       resolve(src);
     };
 
@@ -107,7 +100,6 @@ export function useRecaptchaV3(siteKey) {
         if (cancelled) return;
 
         const ok = await waitForGrecaptchaReady({ timeoutMs: 6000, stepMs: 50 });
-        console.log('[recaptcha] grecaptcha available:', ok);
 
         if (!ok) {
           console.warn('[recaptcha] grecaptcha not available after timeout');
@@ -116,7 +108,6 @@ export function useRecaptchaV3(siteKey) {
 
         window.grecaptcha.ready(() => {
           if (cancelled) return;
-          console.log('[recaptcha] grecaptcha ready ✅');
           setReady(true);
         });
       } catch {

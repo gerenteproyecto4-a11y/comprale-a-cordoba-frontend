@@ -117,7 +117,6 @@ export async function POST(request) {
       const verdict = await verifyRecaptchaToken(recaptchaToken);
 
       if (!verdict.ok) {
-        console.warn('[graphql-proxy] reCAPTCHA failed', { requestId, verdict });
         return new Response(JSON.stringify({ message: 'reCAPTCHA verification failed', details: verdict }), {
           status: 403,
           headers: {
@@ -146,16 +145,6 @@ export async function POST(request) {
     if (isCheckoutPaymentOperation(body) && recaptchaToken) {
       forwardHeaders['X-ReCaptcha'] = recaptchaToken;
     }
-
-    console.log('[graphql-proxy] -> upstream', {
-      requestId,
-      url,
-      store: storeToSend || null,
-      operationName: body?.operationName || null,
-      hasVariables: Boolean(body?.variables),
-      hasRecaptchaForwarded: isCheckoutPaymentOperation(body) ? Boolean(recaptchaToken) : 'n/a',
-      queryPreview: typeof body?.query === 'string' ? body.query.slice(0, 120) : null,
-    });
 
     const response = await fetch(url, {
       method: 'POST',
