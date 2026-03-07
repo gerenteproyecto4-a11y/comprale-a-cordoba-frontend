@@ -1,4 +1,3 @@
-
 'use client';
 
 import Navbar from '../Navbar/Navbar';
@@ -51,9 +50,10 @@ export default function CheckoutForm() {
     router,
   } = useCheckoutForm();
 
-  // ✅ reCAPTCHA v3
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   const { ready: recaptchaReady, getToken } = useRecaptchaV3(siteKey);
+
+  const canPay = Boolean(canSubmit && recaptchaReady);
 
   const cityProps = {
     cityDesktopOpen,
@@ -67,18 +67,35 @@ export default function CheckoutForm() {
     onCitySelect: handleCitySelect,
   };
 
-  // ✅ Important: keep original canSubmit behavior for enabling/disabling button
-  // but ALSO require recaptcha to be ready before enabling payment.
-  const canPay = Boolean(canSubmit && recaptchaReady);
-
   const summaryProps = {
     total,
     shippingCost,
     grandTotal,
     cartSyncing,
     shippingLoading,
-    canSubmit: canPay, // ✅ button enabled only if form is valid + recaptcha ready
+    canSubmit: canPay,
     processing,
+  };
+
+  // ✅ Handler separado y limpio — e.preventDefault() es SIEMPRE lo primero
+  const onFormSubmit = async (e) => {
+    e.preventDefault(); // ← SIEMPRE primero, sin condiciones
+    e.stopPropagation();
+
+    if (!recaptchaReady) {
+      // No hacer nada hasta que reCAPTCHA esté listo
+      return;
+    }
+
+    let token = null;
+    try {
+      token = await getToken('checkout_submit');
+    } catch (err) {
+      console.error('reCAPTCHA getToken error:', err);
+      // handleSubmit manejará el token null con su propio error
+    }
+
+    await handleSubmit(e, { recaptchaToken: token });
   };
 
   if (items.length === 0 && !processing) {
@@ -120,38 +137,41 @@ export default function CheckoutForm() {
           </div>
         )}
 
+        {/* ✅ onSubmit apunta al handler limpio */}
         <form
           className="checkout__grid"
-          onSubmit={async (e) => {
-            // preserve original behavior: useCheckoutForm handles validation and redirect
-            // only add: generate token and pass it down
-            if (!recaptchaReady) {
-              e.preventDefault();
-              return;
-            }
-
-            const token = await getToken('checkout_submit');
-            return handleSubmit(e, { recaptchaToken: token });
-          }}
+          onSubmit={onFormSubmit}
           noValidate
         >
-          <CheckoutFormSection form={form} errors={errors} handleChange={handleChange} setTermsOpen={setTermsOpen} cityProps={cityProps} />
+          <CheckoutFormSection
+            form={form}
+            errors={errors}
+            handleChange={handleChange}
+            setTermsOpen={setTermsOpen}
+            cityProps={cityProps}
+          />
 
           {/* Desktop summary */}
-          <section className="checkout__col checkout__col--summary checkout__summary-desktop" aria-label="Resumen de compra">
+          <section
+            className="checkout__col checkout__col--summary checkout__summary-desktop"
+            aria-label="Resumen de compra"
+          >
             <h2 className="checkout__summary-title">Resumen de compra</h2>
             <div className="checkout__summary-scroll">
               <ul className="checkout__items" aria-label="Artículos en el carrito">
                 {items.map(({ product, quantity: qty }) => (
-                  <CheckoutItem key={product.id} product={product} quantity={qty} onUpdateQuantity={updateQuantity} />
+                  <CheckoutItem
+                    key={product.id}
+                    product={product}
+                    quantity={qty}
+                    onUpdateQuantity={updateQuantity}
+                  />
                 ))}
               </ul>
               <a href="/" className="checkout__add-more">+ Agregar más productos</a>
             </div>
             <div className="checkout__summary-bottom">
               <CheckoutSummaryTotals {...summaryProps} />
-
-              {/* Optional small hint */}
               {canSubmit && !recaptchaReady ? (
                 <p style={{ marginTop: 10, color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
                   Verificando seguridad…
@@ -163,30 +183,60 @@ export default function CheckoutForm() {
           {/* Mobile bottom sheet summary */}
           <section
             ref={summaryRef}
-            className={`checkout__col checkout__col--summary checkout__summary-mobile${mobileSummaryOpen ? ' checkout__col--summary-open' : ' checkout__col--summary-collapsed'}`}
+            className={`checkout__col checkout__col--summary checkout__summary-mobile${
+              mobileSummaryOpen ? ' checkout__col--summary-open' : ' checkout__col--summary-collapsed'
+            }`}
             aria-labelledby="summary-title-mobile"
             onTouchStart={handleSummaryTouchStart}
             onTouchMove={handleSummaryTouchMove}
             onTouchEnd={handleSummaryTouchEnd}
           >
-            <button type="button" className="checkout__sheet-tapArea" onClick={() => animateSummaryTo(!mobileSummaryOpen)} aria-label="Abrir o cerrar resumen">
+            <button
+              type="button"
+              className="checkout__sheet-tapArea"
+              onClick={() => animateSummaryTo(!mobileSummaryOpen)}
+              aria-label="Abrir o cerrar resumen"
+            >
               <div className="checkout__sheet-handle" aria-hidden="true" />
             </button>
 
             <div className="checkout__summary-head">
               <h2 className="checkout__summary-title" id="summary-title-mobile">Resumen</h2>
-              <button type="button" className="checkout__summary-toggle" onClick={() => animateSummaryTo(!mobileSummaryOpen)} aria-expanded={mobileSummaryOpen}>
+              <button
+                type="button"
+                className="checkout__summary-toggle"
+                onClick={() => animateSummaryTo(!mobileSummaryOpen)}
+                aria-expanded={mobileSummaryOpen}
+              >
                 {mobileSummaryOpen ? 'Ocultar detalle' : `Detalle (${items.length})`}
-                <svg className="checkout__summary-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                <svg
+                  className="checkout__summary-chevron"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  aria-hidden="true"
+                >
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
             </div>
 
-            <div className={`checkout__summary-collapsible${mobileSummaryOpen ? ' checkout__summary-collapsible--open' : ''}`}>
+            <div
+              className={`checkout__summary-collapsible${
+                mobileSummaryOpen ? ' checkout__summary-collapsible--open' : ''
+              }`}
+            >
               <ul className="checkout__items" aria-label="Artículos en el carrito">
                 {items.map(({ product, quantity: qty }) => (
-                  <CheckoutItem key={product.id} product={product} quantity={qty} onUpdateQuantity={updateQuantity} />
+                  <CheckoutItem
+                    key={product.id}
+                    product={product}
+                    quantity={qty}
+                    onUpdateQuantity={updateQuantity}
+                  />
                 ))}
               </ul>
               <a href="/" className="checkout__add-more">+ Agregar más productos</a>
@@ -202,4 +252,3 @@ export default function CheckoutForm() {
     </div>
   );
 }
-

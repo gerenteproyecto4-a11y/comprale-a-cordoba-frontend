@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -19,7 +18,6 @@ function stableCartSignature(items) {
     .join('|');
 }
 
-// ✅ helper: execute recaptcha without changing the submit flow
 export function useCheckoutForm() {
   const router = useRouter();
   const { items, total, updateQuantity, clearCart } = useCart();
@@ -317,7 +315,8 @@ export function useCheckoutForm() {
   };
 
   const handleSubmit = async (e, opts = {}) => {
-    e.preventDefault();
+    // ✅ Prevenir submit nativo siempre como primera línea
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
     const { recaptchaToken } = opts;
 
@@ -356,7 +355,7 @@ export function useCheckoutForm() {
 
       const regionIdInt = Number(form.regionId);
 
-      // ✅ Send reCAPTCHA token in header "X-ReCaptcha" ONLY for the payment mutation
+      // ✅ Enviar el token con el header exacto X-ReCaptcha (casing exacto)
       const checkoutPaymentRes = await graphqlGuestClient.request(
         CREATE_CHECKOUT_PAYMENT,
         {
@@ -378,7 +377,7 @@ export function useCheckoutForm() {
 
       clearCart();
 
-      // ✅ keep original redirect behavior
+      // ✅ Redirigir a la pasarela de pagos
       if (paymentUrl) window.location.href = paymentUrl;
       else throw new Error('No se recibió la URL de pago.');
     } catch (err) {
